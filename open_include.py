@@ -3,6 +3,7 @@ import re
 import threading
 import urllib
 import time
+import subprocess
 
 import sublime
 import sublime_plugin
@@ -288,6 +289,46 @@ class OpenIncludeThread(threading.Thread):
 
         return unique(paths2)
 
+    def expand_paths_with_find_commands(self, window, view, paths):
+
+        commands = s.get('find_commands', [])
+
+        if not len(commands):
+            return paths
+
+        working_dir = s.get('working_dir', '')
+        if not working_dir:
+            working_dir = os.path.join(
+                os.path.dirname(window.project_file_name()),
+                window.project_data().get('root_dir', ''))
+        # TODO guess working dir
+
+        # args = ''
+        paths = paths.split('\n')
+        args = paths[0] or ''
+
+        # if view.file_name():
+        #     args += view.file_name()
+
+        # if len(view.sel()): # be aware of multiple cursor
+        #     # args += ':{}:{}'.format(*view.rowcol(view.sel()[0].a))
+        #     region = view.sel()[0]
+        #     cursor_row, cursor_col = view.rowcol(region.begin())
+        #     args += ':{row}:{col}'.format(row=cursor_row, col=cursor_col)
+
+        paths_to_add = []
+
+        for cmd in commands:
+            try:
+                cmd = 'cd {wd}; {cmd} {args}'.format(wd=working_dir, cmd=cmd, args=args)
+                result = subprocess.check_output(cmd, shell=True).decode('utf-8')
+                paths_to_add.extend(result.strip().split('\n'))
+            except subprocess.CalledProcessError as e:
+                if debug:
+                    print(e)
+
+        return '\n'.join(paths_to_add)
+
     # resolve the path of these sources and send to try_open
     def resolve_path(self, window, view, paths, skip_folders = False):
         global cache
@@ -303,12 +344,15 @@ class OpenIncludeThread(threading.Thread):
             paths_decoded = urllib.unquote(paths.encode('utf8'))
             paths_decoded = unicode(paths_decoded.decode('utf8'))
             paths += '\n' + paths_decoded
-        except:
+        except AttributeError:
             try:
                 paths_decoded = urllib.parse.unquote(paths)
                 paths += '\n' + paths_decoded
-            except:
+            except AttributeError:
                 pass
+
+        if s.get('find_commands'):
+            paths = self.expand_paths_with_find_commands(window, view, paths)
 
         user_home_path = expanduser("~")
 
