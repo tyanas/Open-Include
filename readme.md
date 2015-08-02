@@ -1,3 +1,52 @@
+# tl;dr
+## Install
+
+::
+
+    cd ~/Library/Application\ Support/Sublime\ Text\ 3/Packages/
+    git clone git@github.com:tyanas/Open-Include.git
+
+## Set up
+
+Open Prefereces -> .. -> Open-Include -> Settings User. Add::
+
+    {
+      "create_if_not_exists": true,
+      "working_dir": "/path/to/basis/project",
+      "find_commands": [
+        "node_modules/basisjs-tools/bin/basis find "
+      ]
+    }
+
+If you have more then one project, go Project -> Edit Project.
+Specify `root_dir` option – path relative to `your_project.sublime-project` file folder ::
+
+    {
+      "root_dir": "my_working_dir",
+      "folders":
+      [
+        {
+          "path": "my_working_dir/src"
+        },
+        ...
+      ]
+    }
+
+## Debug
+
+Run Sublime from the Terminal::
+
+    $ /Applications/Sublime\ Text.app/Contents/MacOS/Sublime\ Text
+
+Use this variation of `import pdb; pdb.set_trace()`::
+
+    import pdb, sys; pdb.Pdb(stdout=sys.__stdout__).set_trace()
+
+Explanation here http://stackoverflow.com/questions/16384626/how-to-debug-sublime-plugins-during-development/16385039#16385039
+
+Open built-in Sublime Python console with `Ctrl + ~`
+
+
 # Description
 
 This plugin will try to open Sublime Text file paths found on caret positions or partial selections when pressing <kbd>ALT+D</kbd>.
