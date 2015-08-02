@@ -298,9 +298,14 @@ class OpenIncludeThread(threading.Thread):
 
         working_dir = s.get('working_dir', '')
         if not working_dir:
-            working_dir = os.path.join(
-                os.path.dirname(window.project_file_name()),
-                window.project_data().get('root_dir', ''))
+            project_dir = window.project_data().get('root_dir', '')
+            if project_dir:
+                working_dir = os.path.join(
+                    os.path.dirname(window.project_file_name()), project_dir)
+            elif view.file_name():
+                working_dir = os.path.dirname(view.file_name())
+            else:
+                working_dir = os.path.dirname(window.project_file_name())
         # TODO guess working dir
 
         # args = ''
