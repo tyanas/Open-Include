@@ -310,7 +310,14 @@ class OpenIncludeThread(threading.Thread):
 
         # args = ''
         paths = paths.split('\n')
-        args = paths[0] or ''
+
+        # get the original line or line part
+        args = paths[0] if len(paths) else ''
+
+        matches = re.findall(r'[\"\'](.+?)[\"\']', args)
+
+        # get the first match
+        args = matches[0] if len(matches) else args
 
         # if view.file_name():
         #     args += view.file_name()
